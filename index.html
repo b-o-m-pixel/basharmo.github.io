@@ -482,6 +482,10 @@
     margin-right: auto;
     line-height: 2;
   }
+  .cursor {
+    animation: blink 1s step-end infinite;
+    color: var(--accent);
+  }
   .terminal .prompt { color: var(--green); }
   .terminal .cmd { color: var(--accent); }
   .terminal .out { color: var(--muted); }
@@ -490,6 +494,10 @@
   @keyframes fadeUp {
     from { opacity: 0; transform: translateY(20px); }
     to   { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0; }
   }
   .hero-inner { animation: fadeUp 0.8s ease both; }
 
@@ -817,14 +825,8 @@
       <a href="https://tryhackme.com/p/shadowadmin" class="contact-link">TryHackMe</a>
     </div>
 
-    <div class="terminal">
-      <div><span class="prompt">bashar@kigali</span>:<span class="cmd">~</span>$ whoami</div>
-      <div class="out">blue_team_analyst_in_training</div>
-      <div><span class="prompt">bashar@kigali</span>:<span class="cmd">~</span>$ cat goals.txt</div>
-      <div class="out">→ 🛡️ systems & network Defense</div>
-      <div class="out">→ ⚙️ real-world security operations</div>
-      <div class="out">→ 🏭 OT/ICS security</div>
-      <div><span class="prompt">bashar@kigali</span>:<span class="cmd">~</span>$ <span style="animation:blink 1s step-end infinite;color:var(--accent)">█</span></div>
+    <div class="terminal" id="terminal">
+      <div id="terminal-content"></div>
     </div>
   </div>
 </section>
@@ -867,5 +869,63 @@ function closeCertLightbox() {
 }
 document.addEventListener('keydown', e => { if (e.key === 'Escape') closeCertLightbox(); });
 </script>
+<script>
+const lines = [
+  { type: "input", text: "whoami" },
+  { type: "output", text: "blue_team_analyst_in_training" },
+  { type: "input", text: "cat goals.txt" },
+  { type: "output", text: "→ 🛡️ system & network defense" },
+  { type: "output", text: "→ ⚙️ security operations" },
+  { type: "output", text: "→ 🏭 OT/ICS security" }
+];
+
+const terminal = document.getElementById("terminal-content");
+
+let lineIndex = 0;
+let charIndex = 0;
+
+function typeLine() {
+  if (lineIndex >= lines.length) {
+    addCursor();
+    return;
+  }
+
+  const line = lines[lineIndex];
+
+  if (charIndex === 0) {
+    const div = document.createElement("div");
+
+    if (line.type === "input") {
+      div.innerHTML = `<span class="prompt">bashar@kigali</span>:<span class="cmd">~</span>$ <span class="typing"></span>`;
+    } else {
+      div.innerHTML = `<span class="out typing"></span>`;
+    }
+
+    terminal.appendChild(div);
+  }
+
+  const currentLine = terminal.lastChild.querySelector(".typing");
+  currentLine.textContent += line.text[charIndex];
+
+  charIndex++;
+
+  if (charIndex < line.text.length) {
+    setTimeout(typeLine, 20); // typing speed
+  } else {
+    charIndex = 0;
+    lineIndex++;
+    setTimeout(typeLine, 300);
+  }
+}
+
+function addCursor() {
+  const cursorLine = document.createElement("div");
+  cursorLine.innerHTML = `<span class="prompt">bashar@kigali</span>:<span class="cmd">~</span>$ <span class="cursor">█</span>`;
+  terminal.appendChild(cursorLine);
+}
+
+typeLine();
+</script>
 </body>
+
 </html>
